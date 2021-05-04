@@ -1,0 +1,117 @@
+---
+title: "EAP 10 Notebook"
+output: html_notebook
+---
+
+This notebook features preliminary counts ahead of the EAP 10 Report. As of 2/10/2021. 
+
+```{r, include = FALSE}
+library(tidyverse)
+library(odbc)
+```
+
+### Count of Monitored SMPs by Functional Type  
+This includes Continuous Water Level Monitoring only. 
+```{r}
+#database connection
+con <- odbc::dbConnect(odbc::odbc(), "mars_testing")
+
+#user can specify end date
+end_date <- '2021-01-01'
+
+#select asset type, count of unique SMP IDs, and whether public or private
+#based on deployments, joined with other tables/views
+monitored_smp_count_query <- paste0(
+"SELECT sfc.asset_type, 
+       COUNT(DISTINCT(lvl.smp_id)), 
+     own.public
+FROM
+leveldata_time_per_location lvl
+LEFT JOIN fieldwork.ow_ownership own on lvl.ow_uid = own.ow_uid
+LEFT JOIN public.smpid_facilityid_componentid sfc on lvl.smp_id = sfc.smp_id
+WHERE sfc.component_id IS NULL
+AND lvl.smp_id IS NOT NULL
+GROUP BY sfc.asset_type, own.public")
+
+monitored_smp_count_df <- odbc::dbGetQuery(con, monitored_smp_count_query)
+
+#spread to put private and public counts in different columns but same row
+#add to get total Public + Private for each type
+monitored_smp_count <- monitored_smp_count_df %>% 
+  tidyr::pivot_wider(names_from = public, values_from = count, values_fill = 0) %>% 
+  dplyr::rename("Functional Type" = "asset_type", "Private" = "0", "Public" = "1") %>% 
+  dplyr::select(1, 3, 2) %>% 
+  dplyr::mutate("Total" = Private + Public)
+  
+print(monitored_smp_count)
+
+#write.csv(monitored_smp_count, "C:/Users/nicholas.manna/Documents/R/EAP10/monitored_smp_count.csv")
+```
+
+### Count and average duration of short and long term deployments (working on this)
+### Public Breakdown
+```{r}
+public_breakdown <- dbGetQuery(con, "with cte as(
+select lvl.ow_uid, lvl.smp_id, lvl.ow_suffix, lvl.time_days,  d.term
+from leveldata_time_per_location lvl
+left join fieldwork.deployment_full d
+on lvl.ow_uid = d.ow_uid
+where collection_dtime_est is not null
+and term != 'SRT'
+and type = 'LEVEL'
+and public = TRUE
+group by lvl.ow_uid, lvl.smp_id, lvl.ow_suffix, lvl.time_days, d.term
+order by ow_uid desc)
+select sfc.asset_type, 
+cte.term,
+count(cte.smp_id), 
+avg(cte.time_days)
+FROM cte 
+LEFT JOIN public.smpid_facilityid_componentid sfc on cte.smp_id = sfc.smp_id
+WHERE sfc.component_id IS NULL
+group by sfc.asset_type, cte.term")
+
+public_breakdown_wide <- public_breakdown %>% 
+  tidyr::pivot_wider(names_from = term, values_from = c(count, avg), values_fill = 0) %>% 
+ # dplyr::rename("Functional Type" = "asset_type", "No. Short Term Monitoring Deployments" = "count_Short", 
+ #               "No. Long Term Monitoring Deployments" = "count_Long", 
+ #               "Average Duration of Short Term Monitoring Deployments (Days)" = "avg_Short", 
+ #               "Average Duration of Long Term Monitoring Deployments (Days)" = "avg_Long", ) %>% 
+  dplyr::select(1, 2, 4, 3, 5)
+
+print(public_breakdown_wide)
+
+write.csv(public_breakdown_wide, "C:/Users/nicholas.manna/Documents/R/EAP10/public_breakdown.csv")
+```
+
+### Private breakdown 
+```{r}
+private_breakdown <- dbGetQuery(con, "with cte as(
+select lvl.ow_uid, lvl.smp_id, lvl.ow_suffix, lvl.time_days,  d.term
+from leveldata_time_per_location lvl
+left join fieldwork.deployment_full d
+on lvl.ow_uid = d.ow_uid
+where collection_dtime_est is not null
+and term != 'SRT'
+and type = 'LEVEL'
+and public = FALSE
+group by lvl.ow_uid, lvl.smp_id, lvl.ow_suffix, lvl.time_days, d.term
+order by ow_uid desc)
+select sfc.asset_type, 
+cte.term,
+count(cte.smp_id), 
+avg(cte.time_days)
+FROM cte 
+LEFT JOIN public.smpid_facilityid_componentid sfc on cte.smp_id = sfc.smp_id
+WHERE sfc.component_id IS NULL
+group by sfc.asset_type, cte.term")
+
+private_breakdown_wide <- private_breakdown %>% 
+  tidyr::pivot_wider(names_from = term, values_from = c(count, avg), values_fill = 0) %>% 
+  #dplyr::rename("Functional Type" = "asset_type", "No. Short Term Monitoring Deployments" = "count_Short", 
+  #              "Average Duration of Short Term Monitoring Deployments (Days)" = "avg_Short")  
+
+print(private_breakdown_wide)
+
+write.csv(private_breakdown_wide, "C:/Users/nicholas.manna/Documents/R/EAP10/private_breakdown.csv")
+```

@@ -69,8 +69,8 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
     
   }
   
-  #1.2 asset/functional type plots
-  #1.2.1 subsurface
+  #1.2 asset/functional type plots -----
+  #1.2.1 subsurface -----
   
   subsurface_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.rainfall_radarcell_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description from performance.summary_ow_event_radarcell s
                                               left join performance.eventdepth_bin_lookup e on e.eventdepth_lookup_uid = s.eventdepth_lookup_uid
@@ -96,7 +96,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
       stat_summary(fun.data = give.n, geom= "text", position = position_dodge(width = 0.75))
     
     
-    #1.2.1.1 by relative event depth range ----
+    #1.2.1.2 by relative event depth range ----
     subsurface_metrics_select_rel <- subsurface_metrics_select %>% 
       dplyr::filter(relative_eventdepth_lookup_uid != 6) 
     
@@ -111,7 +111,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
     
   }
   
-  #1.2.1 surface
+  #1.2.2 surface -------
   surface_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.rainfall_radarcell_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description from performance.summary_ow_event_radarcell s
                                               left join performance.eventdepth_bin_lookup e on e.eventdepth_lookup_uid = s.eventdepth_lookup_uid
                                               left join performance.relative_eventdepth_bin_lookup r on r.relative_eventdepth_lookup_uid = s.relative_eventdepth_lookup_uid
@@ -126,7 +126,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
     surface_metrics_select <- surface_metrics %>% 
       dplyr::filter(asset_type == unique(surface_metrics$asset_type)[i])
     
-    #1.2.1.1 by event depth range ----
+    #1.2.2.1 by event depth range ----
     #plot RPSU by event depth range for smp
     ggplot(surface_metrics_select, aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
       geom_boxplot() +
@@ -136,7 +136,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
       stat_summary(fun.data = give.n, geom= "text", position = position_dodge(width = 0.75))
     
     
-    #1.2.1.1 by relative event depth range ----
+    #1.2.2.2 by relative event depth range ----
     surface_metrics_select_rel <- surface_metrics_select %>% 
       dplyr::filter(relative_eventdepth_lookup_uid != 6) 
     

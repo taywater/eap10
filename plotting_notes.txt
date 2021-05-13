@@ -1,0 +1,22 @@
+add "n = " - this is not working because using paste("n = ", length(x)) results in an error: "Error: Discrete value supplied to continuous scale"
+
+show total number of storms accounted for
+
+might also be useful to show deployment duration (title deployment period = "x" months) - got it
+
+Relative event depth range (storm size - design storm size) or event depth - design depth - write out a little more  - got it
+
+maybe highlight or point to the (-0.25, + 0.25) to indicate that that is the design storm range - thinking i will do that 
+
+look up other boxplots/bins 
+
+indicate what design storm is on main plots - i put it in the title
+
+is there a number we are looking for? 
+
+just a thought - consider zooming in on plots without outliers
+
+
+
+
+

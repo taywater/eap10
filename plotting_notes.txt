@@ -1,18 +1,18 @@
 add "n = " - this is not working because using paste("n = ", length(x)) results in an error: "Error: Discrete value supplied to continuous scale"
 
-show total number of storms accounted for
+show total number of storms accounted for - not sure where to put this
 
 might also be useful to show deployment duration (title deployment period = "x" months) - got it
 
 Relative event depth range (storm size - design storm size) or event depth - design depth - write out a little more  - got it
 
-maybe highlight or point to the (-0.25, + 0.25) to indicate that that is the design storm range - thinking i will do that 
+maybe highlight or point to the (-0.25, + 0.25) to indicate that that is the design storm range - thinking i will do that directly on a picture of a plot in the report
 
-look up other boxplots/bins 
+look up other boxplots/bins to compare styles - i didn't do this
 
 indicate what design storm is on main plots - i put it in the title
 
-is there a number we are looking for? 
+is there a number we are looking for? - this was a patty question about general things. i guess just worth noting in narrative about inf rates / draindown
 
 just a thought - consider zooming in on plots without outliers
 

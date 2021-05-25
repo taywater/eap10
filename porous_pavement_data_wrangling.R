@@ -91,12 +91,33 @@ fppr <- fpp_raw_results %>%
 #1.4 write to db. using DBI because it is in a schema and the odbc version doesn't really get that
 library(DBI)
 
-dbWriteTable(mars, SQL("fieldwork.porous_pavement_results"), fppr, append = TRUE)
+#dbWriteTable(mars, SQL("fieldwork.porous_pavement_results"), fppr, append = TRUE)
 
 
 #table(fpp_raw_results$porous_pavement_uid)
 
+#2.0 version of this with more data -------------------
+#5/19/2021
 
+#porous pavement results data
+rejuve <- read_excel("C:/Users/nicholas.manna/Documents/R/working/porous/porous_rejuve_results.xlsx") %>% 
+  mutate("test_location" = as.character(test_location))
 
+rejuve_record_join <- rejuve %>% 
+  left_join(fpp, by = c("smp_id", "date" = "test_date", "test_location"))
 
+rrj_write <- rejuve_record_join %>% 
+  dplyr::select("porous_pavement_uid", "rate_inhr")
 
+dbWriteTable(mars, SQL("fieldwork.porous_pavement_results"), rrj_write, append = TRUE)
+
+#adding more results data
+more <- read_excel("C:/Users/nicholas.manna/Documents/R/working/porous/other_porous_results.xlsx")
+
+more_record_join <- more %>% 
+  left_join(fpp, by = c("smp_id", "date" = "test_date", "test_location"))
+
+more_record_write <- more_record_join %>% 
+  dplyr::select("porous_pavement_uid", "weight_lbs", "time_s", "rate_inhr")
+
+dbWriteTable(mars, SQL("fieldwork.porous_pavement_results"), more_record_write, append = TRUE)

@@ -58,7 +58,9 @@ sub_all <- subsurface_metrics %>%
                                 observed_simulated_lookup_uid == 2 ~ "Simulated"))
 
 overtopping_summary <- sub_all %>% 
-  dplyr::count(asset_type, observed, overtopping)
+  dplyr::count(asset_type, Observed, overtopping)
+
+write.csv(overtopping_summary, paste0(folder,date, "subsurface_overtopping_summary.csv"))
   
 for(i in 1:length(unique(sub_all$asset_type))){
  

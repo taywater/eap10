@@ -20,7 +20,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
 #folder root to save plots 
 folder <- "O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
 
-date <- "20210525/"
+date <- "20210607/"
 
 #font size 
 text_size = 22
@@ -32,12 +32,12 @@ type <- "long_term_trends/"
 
 # 1.1 long term smp plots (subsurface only)----
 
-long_term_smp_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, rre.eventdatastart_edt, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.rainfall_radarcell_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description from performance.summary_ow_event_radarcell s
+long_term_smp_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, rre.eventdatastart_edt, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.rainfall_radarcell_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description, s.observed_simulated_lookup_uid from performance.summary_ow_event_radarcell s
                                               left join performance.eventdepth_bin_lookup e on e.eventdepth_lookup_uid = s.eventdepth_lookup_uid
                                               left join performance.relative_eventdepth_bin_lookup r on r.relative_eventdepth_lookup_uid = s.relative_eventdepth_lookup_uid
                                               left join rainfall_radarcell_event rre on rre.rainfall_radarcell_event_uid = s.rainfall_radarcell_event_uid
                                               where smp_id in (select distinct(smp_id)
-                                             from fieldwork.deployment_full where term = 'Long') and s.surface = false")
+                                             from fieldwork.deployment_full where term = 'Long') and s.surface = false and s.observed_simulated_lookup_uid = 1")
 
 for(i in 1:length(unique(long_term_smp_metrics$ow_uid))){
   

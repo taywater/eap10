@@ -25,7 +25,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
 #folder root to save plots 
 folder <- "O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
 
-date <- "20210527/"
+date <- "20210604/"
 
 #font size 
 text_size = 22

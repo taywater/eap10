@@ -11,13 +11,14 @@ infils <- dbGetQuery(mars, "SELECT distinct ssla.smp_id, ssla.ow_suffix, ssla.me
 infils$dsg_rate_inhr[is.na(infils$dsg_rate_inhr)] <- 0
 
 #recode 0 to 0.02 for ease of plotting at log scale
-infils$dsg_rate_inhr[infils$dsg_rate_inhr == 0] <- 0.02
+infils$dsg_rate_inhr[infils$dsg_rate_inhr == 0] <- 0.01
 
 ggplot(infils) + 
   geom_point(aes(x = dsg_rate_inhr, y = obs_rate_inhr)) + 
+  geom_line(data = data.frame(x = c(0.01, 10), y = c(0.01, 10)), aes(x = x, y = y)) + 
   scale_x_continuous(trans = "log10") + 
   scale_y_continuous(trans = "log10") + 
   xlab("Log10 of Pre-Construction Infiltration Rate (in/hr)") + 
-  ylab("Log10 of Observed Infiltration Rate (in/hr)") + 
+  ylab("Log10 of Observed Recession Rate (in/hr)") +  
   ggtitle("Pre-Construction Infiltration Rates vs Observed Rates") +
   theme(text = element_text(size = 20))

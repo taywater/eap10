@@ -1,6 +1,8 @@
 ---
 title: "EAP 10 Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 This notebook features preliminary counts ahead of the EAP 10 Report. As of 2/10/2021. 

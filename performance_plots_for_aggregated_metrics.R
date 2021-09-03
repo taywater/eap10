@@ -25,7 +25,7 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
 #folder root to save plots 
 folder <- "O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
 
-date <- "20210525/"
+date <- "20210902/"
 
 #font size 
 text_size = 22
@@ -63,7 +63,7 @@ text_size = 22
     #1.1.1 by event depth range ----
     #plot RPSU by event depth range for smp
     smp_rpsu_event_depth_plot <- ggplot(long_term_smp_metrics_select, 
-                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage)) + 
+                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage), colour = "#F87766D") + 
         geom_boxplot() +
         xlab("Event Depth Range (in)") +
         ylab("Relative Percent of Storage Used") + 

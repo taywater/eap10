@@ -10,6 +10,7 @@ library(gridExtra)
 library(grid)
 library(gtable)
 library(ggtext)
+library(odbc)
 
 #connection 
 mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
@@ -22,7 +23,7 @@ ow_testing_list <- read.csv("C:/Users/nicholas.manna/Documents/R/EAP10_nm/csvs f
   dplyr::rename("smp_id" = 1) %>% 
   #only do OW1s for now to avoid weirdness with an ancient CS or GIs
   #dplyr::filter(ow_suffix == 'OW1', smp_id == '1-1-1')
-#select sites if that's what youre into
+ #select sites if that's what youre into
  # dplyr::filter(smp_id %in% c('1-2-1', '1-3-1', '8-1-1', '9-1-1', '9-2-1', '88-1-1',
  #                             '170-1-1', '170-2-1', '187-3-3', '250-1-1', '250-2-1', '250-3-1', '326-1-1')) %>%
  dplyr::filter(ow_suffix == 'OW1')
@@ -36,13 +37,15 @@ sum_list <- vector(mode = "list", length = length(ow_testing_list$start_date))
 #get smps that have already been simulated, so we can run the ones that have not been simulated 
 simmed_sites <- dbGetQuery(mars, "select distinct ow_uid, smp_id, ow_suffix from performance.summary_ow_event_radarcell where observed_simulated_lookup_uid = 2")
 
-ow_testing_list <- ow_testing_list %>% 
-  anti_join(simmed_sites, by = c("smp_id", "ow_suffix"))
+# ow_testing_list <- ow_testing_list %>% 
+#   anti_join(simmed_sites, by = c("smp_id", "ow_suffix"))
 
 for(i in 6:length(ow_testing_list$start_date)){
+  i <- 116
   # top of fn----------
   #read dates and SMPs from testing list
   start_date <- sf(mdy(ow_testing_list$start_date[i]))#, sf(mdy(ow_testing_list$start_date[i+1])))
+  #start_date <- "2020-09-01"
   end_date   <- sf(mdy(ow_testing_list$end_date[i]))#, sf(mdy(ow_testing_list$end_date[i+1])))
   target_id  <- ow_testing_list$smp_id[i] %>% as.character()#, ow_testing_list$smp_id[i+1] %>% as.character())
   ow_suffix  <- ow_testing_list$ow_suffix[i] %>% as.character()#, ow_testing_list$ow_suffix[i] %>% as.character())
@@ -64,7 +67,7 @@ for(i in 6:length(ow_testing_list$start_date)){
   #set sim_true to FALSE to skip simulations (comment out if you want to do simulations)
   #keep this here because some conditionals rely on it
   # sim_true <- FALSE
-  if(sim_true == TRUE){
+  #if(sim_true == TRUE){
   
   #fetch monitoring data
   monitoringdata <- marsFetchMonitoringData(con = mars, 
@@ -77,9 +80,7 @@ for(i in 6:length(ow_testing_list$start_date)){
                                             debug = TRUE)
   
   rain_event_data <- monitoringdata[["Rain Event Data"]]
-  rain_data <- monitoringdata[["Rainfall Data"]] %>% mutate(across(dtime_est), - hours(5))
   rain_data <- monitoringdata[["Rainfall Data"]]
-  level_data <- monitoringdata[["Level Data"]]
   level_data <- monitoringdata[["Level Data"]]
   
   #print i and smp_id so we know the loop progress (and where it is if it breaks)
@@ -89,7 +90,7 @@ for(i in 6:length(ow_testing_list$start_date)){
   #only analyze locations with events
   if(length(rain_event_data$rainfall_radarcell_event_uid) > 0){
     #create folders for plots and plots with errors
-    folder <- (paste0("O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/20210604/subsurface_unlined/", paste(target_id, ow_suffix, sep = "_")))
+    folder <- (paste0("O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/20210831/subsurface_unlined/", paste(target_id, ow_suffix, sep = "_")))
     error_folder = paste0(folder, "/error")
     dir.create(folder, showWarnings = FALSE)
     dir.create(error_folder, showWarnings = FALSE)
@@ -181,6 +182,8 @@ for(i in 6:length(ow_testing_list$start_date)){
           
           orifice_volume_cf = round(sum((Simulated_orifice_vol_ft3))),
           
+          peak_level_ft = max(Simulated_depth_ft),
+          
           snapshot_uid = snapshot$snapshot_uid,
           
           observed_simulated_lookup_uid = 2
@@ -243,6 +246,8 @@ for(i in 6:length(ow_testing_list$start_date)){
         
         orifice_volume_cf = round(sum(orifice_outflow_ft3),0),
         
+        peak_level_ft = max(level_ft),
+        
         snapshot_uid = snapshot$snapshot_uid,
         
         observed_simulated_lookup_uid = 1
@@ -278,7 +283,7 @@ for(i in 6:length(ow_testing_list$start_date)){
          dplyr::filter(rainfall_radarcell_event_uid == rain_event_data$rainfall_radarcell_event_uid[j])
 
        #only plot rain events greater than 0.5". this can be modified as desired
-       if(rain_event_data$eventdepth_in[j] > 0.75){
+       #if(rain_event_data$eventdepth_in[j] > 0.75){
        #skip plots with errors -900
        #if simulation ran, plot sim and obs. if not, just plot observed
        if(sim_true & obs_sim_summary$infiltration_inhr[j] != -900){
@@ -295,12 +300,15 @@ for(i in 6:length(ow_testing_list$start_date)){
                                   orifice_show = TRUE,
                                   orifice_height_ft = snapshot$assumption_orificeheight_ft,
                                   rainfall_datetime = rain_plot_data$dtime_est,
-                                  rainfall_in = rain_plot_data$rainfall_in,
-                                  raingage = rain_plot_data$gage_uid,
-                                  infiltration_rate_inhr = obs_sim_summary$infiltration_inhr[j],
-                                  draindown_hr = paste(obs_sim_summary$draindown_hr[j], "| Score:", obs_sim_summary$draindownAssessment[j]),
-                                  percent_storage_relative = round(obs_sim_summary$percentstorageused_relative[j],2),
-                                  baseline_ft = obs_sim_summary$baseline[j])
+                                  rainfall_in = rain_plot_data$rainfall_in)
+                                  # obs_peak_level_ft = round(obs_sim_summary$peak_level_ft[j], 2),
+                                  # obs_infiltration_rate_inhr = round(obs_sim_summary$infiltration_inhr[j], 1),
+                                  # obs_percent_storage_relative = round(obs_sim_summary$percentstorageused_relative[j],1),
+                                  # obs_draindown_hr = round(obs_sim_summary$draindown_hr[j], 0),
+                                  # sim_peak_level_ft = round(obs_sim_summary$peak_level_ft[j + length(rain_event_data$rainfall_radarcell_event_uid)], 2),
+                                  # sim_infiltration_rate_inhr = round(snapshot$infil_dsg_rate_inhr, 1),
+                                  # sim_percent_storage_relative = round(obs_sim_summary$percentstorageused_relative[j + length(rain_event_data$rainfall_radarcell_event_uid)],1),
+                                  # sim_draindown_hr = paste(obs_sim_summary$draindown_hr[j + length(rain_event_data$rainfall_radarcell_event_uid)]))
        }else if(obs_sim_summary$infiltration_inhr[j] != -900){
            #   # plot observed data
            plot <- marsCombinedPlot(event = rain_event_data$rainfall_radarcell_event_uid[j],
@@ -311,22 +319,17 @@ for(i in 6:length(ow_testing_list$start_date)){
                                     orifice_show = TRUE,
                                     orifice_height_ft = snapshot$assumption_orificeheight_ft,
                                     rainfall_datetime = rain_plot_data$dtime_est,
-                                    rainfall_in = rain_plot_data$rainfall_in,
-                                    raingage = rain_plot_data$gage_uid,
-                                    infiltration_rate_inhr = obs_sim_summary$infiltration_inhr[j],
-                                    draindown_hr = paste(obs_sim_summary$draindown_hr[j], "| Score:", obs_sim_summary$draindownAssessment[j]),
-                                    percent_storage_relative = round(obs_sim_summary$percentstorageused_relative[j],2),
-                                    baseline_ft = obs_sim_summary$baseline[j])
+                                    rainfall_in = rain_plot_data$rainfall_in)
 
          }
          #save plot
          #put errors in a different folder
-         if(obs_sim_summary$infiltration_inhr[j] != -900){
+         #if(obs_sim_summary$infiltration_inhr[j] != -900){
            ggplot2::ggsave(paste0(folder, "/", paste(target_id, ow_suffix, rain_event_data$rainfall_radarcell_event_uid[j], sep = "_"),".png"), plot = plot, width = 10, height = 8)
-         }#else if(obs_sim_summary$infiltration_inhr[j] != -900){
+        # }#else if(obs_sim_summary$infiltration_inhr[j] != -900){
         #   ggplot2::ggsave(paste0(error_folder, "/", paste(target_id, ow_suffix, rain_event_data$rainfall_radarcell_event_uid[j], sep = "_"),".png"), plot = plot, width = 10, height = 8)
         # }
-       }
+       #}
    }
     
     #cut the summary to just sim for now 

@@ -63,8 +63,8 @@ text_size = 22
     #1.1.1 by event depth range ----
     #plot RPSU by event depth range for smp
     smp_rpsu_event_depth_plot <- ggplot(long_term_smp_metrics_select, 
-                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage), colour = "#F87766D") + 
-        geom_boxplot() +
+                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage)) + 
+        geom_boxplot(fill = "#F8766D") +
         xlab("Event Depth Range (in)") +
         ylab("Relative Percent of Storage Used") + 
       ggtitle(paste(smp_id, ow_suffix, "|", deployment_time, "Days", "| Design Depth: ~", design_depth, "in"))  +
@@ -76,7 +76,7 @@ text_size = 22
     #plot infitration rate by event depth range for smp
     smp_infiltration_event_depth_plot <- ggplot(long_term_smp_metrics_select, 
                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste(smp_id, ow_suffix, "|", deployment_time, paste0("Days (", round(deployment_time/30, 1)), "Months) Monitored")) +
@@ -88,7 +88,7 @@ text_size = 22
     #plot draindown time by event depth range for smp
     smp_draindown_event_depth_plot <- ggplot(long_term_smp_metrics_select, 
                                         aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(smp_id, ow_suffix, "|", deployment_time, paste0("Days (", round(deployment_time/30, 1)), "Months) Monitored")) +
@@ -107,7 +107,7 @@ text_size = 22
     smp_rpsu_rel_plot <- ggplot(long_term_smp_metrics_select_rel, 
                                         aes(x = relative_eventdepth_range_in, 
                                             group = relative_eventdepth_lookup_uid, y = rel_percentstorage)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Relative Event Depth Range (in) - Event Depth less Design Depth") +
       ylab("Relative Percent of Storage Used") + 
       ggtitle(paste(smp_id, ow_suffix)) +
@@ -120,7 +120,7 @@ text_size = 22
     smp_infiltration_rel_plot <- ggplot(long_term_smp_metrics_select_rel, 
                               aes(x = relative_eventdepth_range_in, 
                                   group = relative_eventdepth_lookup_uid, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Relative Event Depth Range (in) - Event Depth less Design Depth") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste(smp_id, ow_suffix)) +
@@ -133,7 +133,7 @@ text_size = 22
     smp_draindown_rel_plot <- ggplot(long_term_smp_metrics_select_rel, 
                                         aes(x = relative_eventdepth_range_in, 
                                             group = relative_eventdepth_lookup_uid, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Relative Event Depth Range (in) - Event Depth less Design Depth") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(smp_id, ow_suffix)) +
@@ -170,7 +170,7 @@ text_size = 22
     #plot RPSU by event depth range for smp
     asset_rpsu_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                           aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Relative Percent of Storage Used") + 
       ggtitle(paste(subsurface_metrics_select$asset_type[1])) +
@@ -182,7 +182,7 @@ text_size = 22
     #infiltration rate
     asset_infiltration_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                           aes(x = eventdepth_range_in, group = eventdepth_range_in, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste(subsurface_metrics_select$asset_type[1])) +
@@ -194,7 +194,7 @@ text_size = 22
     #draindown hr
     asset_draindown_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                                   aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(subsurface_metrics_select$asset_type[1])) +
@@ -212,7 +212,7 @@ text_size = 22
     #rpsu
     asset_rpsu_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                           aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = rel_percentstorage)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Relative Percent of Storage Used") + 
       ggtitle(paste(subsurface_metrics_select_rel$asset_type[1])) +
@@ -224,7 +224,7 @@ text_size = 22
     #infiltration
     asset_infiltration_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                   aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste(subsurface_metrics_select_rel$asset_type[1])) +
@@ -236,7 +236,7 @@ text_size = 22
     #draindown
     asset_draindown_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                           aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(subsurface_metrics_select_rel$asset_type[1])) +
@@ -269,7 +269,7 @@ text_size = 22
     #1.2.2.1 by event depth range ----
     #plot RPSU by event depth range for smp
     asset_draindown_event_depth_plot <- ggplot(surface_metrics_select, aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size Range (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(surface_metrics_select$asset_type[1])) +
@@ -287,7 +287,7 @@ text_size = 22
     asset_draindown_rel_plot <- ggplot(surface_metrics_select_rel, 
                                                aes(x = relative_eventdepth_range_in, 
                                                    group = relative_eventdepth_lookup_uid, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste(surface_metrics_select_rel$asset_type[1])) +
@@ -324,7 +324,7 @@ text_size = 22
     #plot RPSU by event depth range for smp
     lined_rpsu_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                           aes(x = eventdepth_range_in, group = eventdepth_range_in, y = rel_percentstorage)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Relative Percent of Storage Used") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -336,7 +336,7 @@ text_size = 22
     #infiltration rate
     lined_infiltration_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                                   aes(x = eventdepth_range_in, group = eventdepth_range_in, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -348,7 +348,7 @@ text_size = 22
     #draindown hr
     lined_draindown_event_depth_plot <- ggplot(subsurface_metrics_select, 
                                                aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Event Depth Range (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -367,7 +367,7 @@ text_size = 22
     #rpsu
     lined_rpsu_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                   aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = rel_percentstorage)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Relative Percent of Storage Used") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -379,7 +379,7 @@ text_size = 22
     #infiltration
     lined_infiltration_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                           aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = infiltration_rate_inhr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Infiltration Rate (in/hr)") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -391,7 +391,7 @@ text_size = 22
     #draindown
     lined_draindown_rel_plot <- ggplot(subsurface_metrics_select_rel, 
                                        aes(x = relative_eventdepth_range_in, group = relative_eventdepth_lookup_uid, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in) - Event Depth less Design Depth") +
       ylab("Draindown (hr)") + 
       ggtitle(paste("Subsurface", lined_type)) +
@@ -425,7 +425,7 @@ text_size = 22
     #1.2.2.1 by event depth range ----
     #plot RPSU by event depth range for smp
     lined_draindown_event_depth_plot <- ggplot(surface_metrics_select, aes(x = eventdepth_range_in, group = eventdepth_range_in, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size Range (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste("Surface", lined_type)) +
@@ -443,7 +443,7 @@ text_size = 22
     lined_draindown_rel_plot <- ggplot(surface_metrics_select_rel, 
                                        aes(x = relative_eventdepth_range_in, 
                                            group = relative_eventdepth_lookup_uid, y = draindown_hr)) + 
-      geom_boxplot() +
+      geom_boxplot(fill = "#F8766D") +
       xlab("Storm Size - Design Storm Size (in)") +
       ylab("Draindown (hr)") + 
       ggtitle(paste("Surface", lined_type)) +

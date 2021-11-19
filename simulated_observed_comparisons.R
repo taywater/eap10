@@ -17,12 +17,14 @@ library(gtable)
 library(ggtext)
 
 #connection 
-mars <- odbc::dbConnect(odbc::odbc(), "mars_testing")
+mars <- odbc::dbConnect(odbc::odbc(), "mars_data")
 
 #folder root to save plots 
-folder <- "O:/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
+folder <- "//pwdoows/oows/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
+dir.create(folder, showWarnings = FALSE)
 
-date <- "20210902/"
+date <- "20211019_aggregatedplots/"
+dir.create(paste0(folder, date), showWarnings = FALSE)
 
 #font size 
 text_size = 22
@@ -32,14 +34,14 @@ type <- "sim_obs_comp/"
 
 # 1.1 long term smp plots (subsurface only)----
 
-subsurface_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.rainfall_radarcell_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description, s.observed_simulated_lookup_uid from performance.summary_ow_event_radarcell s
-                                              left join performance.eventdepth_bin_lookup e on e.eventdepth_lookup_uid = s.eventdepth_lookup_uid
-                                              left join performance.relative_eventdepth_bin_lookup r on r.relative_eventdepth_lookup_uid = s.relative_eventdepth_lookup_uid
+subsurface_metrics <- dbGetQuery(mars, "select s.ow_uid, s.smp_id, s.ow_suffix, s.asset_type, s.lined, s.surface, s.infiltration_rate_inhr, s.rel_percentstorage, s.draindown_hr, s.dd_assessment_lookup_uid, s.overtopping, s.error_lookup_uid, s.radar_event_uid, s.eventdepth_in, s.eventpeakintensity_inhr, s.eventdepth_lookup_uid, s.designdepth_in, s.relative_eventdepth_lookup_uid, e.eventdepth_range_in, e.eventdepth_description, r.relative_eventdepth_range_in, r.relative_eventdepth_description, s.observed_simulated_lookup_uid from metrics.summary_ow_event s
+                                              left join metrics.eventdepth_bin_lookup e on e.eventdepth_lookup_uid = s.eventdepth_lookup_uid
+                                              left join metrics.relative_eventdepth_bin_lookup r on r.relative_eventdepth_lookup_uid = s.relative_eventdepth_lookup_uid
                                               where s.surface = false")
 
 
 give.n <- function(x){
-  return(c(y = mean(x), label = length(x)/2))
+  return(c(y = mean(x), label = round(length(x)/2)))
 }
 
 
@@ -49,11 +51,10 @@ sub_sim <- subsurface_metrics %>%
 
 sub_obs <- subsurface_metrics %>% 
   dplyr::filter(observed_simulated_lookup_uid == 1) %>% 
-  dplyr::filter(ow_uid %in% sub_sim$ow_uid & rainfall_radarcell_event_uid %in% sub_sim$rainfall_radarcell_event_uid)
+  dplyr::filter(ow_uid %in% sub_sim$ow_uid & radar_event_uid %in% sub_sim$radar_event_uid)
 
 sub_all <- subsurface_metrics %>% 
-  #dplyr::filter(observed_simulated_lookup_uid == 1) %>% 
-  dplyr::filter(ow_uid %in% sub_sim$ow_uid & rainfall_radarcell_event_uid %in% sub_sim$rainfall_radarcell_event_uid) %>% 
+  dplyr::filter(ow_uid %in% sub_sim$ow_uid & radar_event_uid %in% sub_sim$radar_event_uid) %>% 
   mutate("Observed" = case_when(observed_simulated_lookup_uid == 1 ~ "Observed", 
                                 observed_simulated_lookup_uid == 2 ~ "Simulated"))
 
@@ -76,7 +77,8 @@ for(i in 1:length(unique(sub_all$asset_type))){
   asset_type <- sub_all_select$asset_type[1]
   
   type <- "Functional Type/"
-  
+  dir.create(paste0(folder, date, type), showWarnings = FALSE)
+    
   #plot RPSU by event depth range for smp
   asset_rpsu_event_depth_plot <-  ggplot(sub_all_select, 
                                         aes(x = eventdepth_range_in, y = rel_percentstorage)) + 
@@ -113,10 +115,25 @@ for(i in 1:length(unique(sub_all$asset_type))){
     #geom_text(data = counts, aes(label = counts$n, x= counts$eventdepth_range_in))+
     xlab("Event Depth Range (in)") +
     ylab("Relative Percent of Storage Used") +
-    ggtitle(paste("Trench and Tree Trench")) +
+    ggtitle(paste("Storage Utilization for Trench and Tree Trench Systems")) +
     stat_summary(fun.data = give.n, geom= "label", size = 1/4*text_size, label.size = NA) +
     theme(text = element_text(size = text_size))
   
   ggsave(filename = paste0(folder,date, type, asset_type, "_event_depth_rpsu.jpg"), plot = asset_rpsu_event_depth_plot, width = 10, height = 8, units = "in")
   
 
+#subsurface unlined draindown
+  sub_lined_select <- sub_all %>% 
+    dplyr::filter(surface == 0 | lined == 0)
+  
+  lined_draindown_event_depth_plot <- ggplot(sub_lined_select, 
+                                             aes(x = eventdepth_range_in, y = draindown_hr)) + 
+    geom_boxplot(aes(fill = Observed)) +
+    xlab("Event Depth Range (in)") +
+    ylab("Draindown (hr)") + 
+   ggtitle("Subsurface Unlined SMP Draindown Times") +
+    stat_summary(fun.data = give.n, geom= "label", size = 1/4*text_size, label.size = NA) +
+    theme(text = element_text(size = text_size))
+  
+  ggsave(filename = paste0(folder,date, type, "Subsurface_Unlined_event_depth_draindown.jpg"), plot = lined_draindown_event_depth_plot, width = 10, height = 8, units = "in")
+  

@@ -1,5 +1,6 @@
 ## Created by: Brian Cruice
 ## Created on: 10/01/2021
+## Last edit:  11/24/2021
 ## Purpose: statistical analysis of conclusions made in the 10 Year EAP Narrative
 
 
@@ -197,7 +198,11 @@ obs_infil %>% group_by(eventdepth_range) %>%
 obs_draindown %>% group_by(eventdepth_range) %>%
                   summarise(mean_obsdraindown = mean(draindown_hr),
                             std_obsdraindown = sd(draindown_hr),
+                            LowerQuartile = quantile(draindown_hr)[2],
+                            UpperQuartile = quantile(draindown_hr)[4],
                             observations = n())
+
+quantile(obs_draindown$draindown_hr)
 
 ##4.0 Pre-construction infiltration tests routinely under predict SMP recession rates
 
@@ -271,14 +276,28 @@ exceeding_draindown_summary <- obs_draindown %>% dplyr::filter(smp_id %in% excee
 
 
 ##6.0 Long-term monitoring sites continue to exceed performance guidelines at Year 10
-long_term_SMPs <- long_term_OWs %>% dplyr::left_join(ow, by = "ow_uid") %>%
-                  dplyr::pull(smp_id) %>% unique()
 
+#create "not in" operator
+`%notin%` <- Negate(`%in%`)
+
+#associate long_term_OWs to long term SMPs
+#remove sites from long term designation: 250-2-1, 250-3-1, 274-4-1
+long_term_SMPs <- long_term_OWs %>% dplyr::left_join(ow, by = "ow_uid") %>%
+                                    dplyr::filter(smp_id %notin% c("250-2-1","250-3-1","274-4-1")) %>%
+                                    dplyr::pull(smp_id)
+
+#list of longterm smps
 long_term_smps <- smp_bdv %>% dplyr::filter(smp_id %in% long_term_SMPs)
 
 
+#long term infiltration and draindown
+long_term_draindown <- draindown_data %>% dplyr::filter(smp_id %in% long_term_SMPs) %>%
+                                          dplyr::mutate(Year = lubridate::year(eventdatastart_edt))  
+
 long_term_infil <- infil_data %>% dplyr::filter(smp_id %in% long_term_SMPs) %>%
                                   dplyr::mutate(Year = lubridate::year(eventdatastart_edt))
+
+
 
 first_storm <- long_term_infil %>% group_by(smp_id) %>%
              dplyr::summarize(first_storm = min(eventdatastart_edt)) %>% unique()
@@ -303,7 +322,6 @@ long_term_lmer2 <- lme4::lmer(log_infiltration_rate_inhr ~ smp_event_age + (smp_
 long_term_lmer_table1 <- sjPlot::tab_model(long_term_lmer1)
 long_term_lmer_table2 <- sjPlot::tab_model(long_term_lmer2)
 
-
 #descriptive statistics of long term smps
 
 long_term_smps %>% group_by(smp_smptype) %>% summarise(Count = n())
@@ -316,7 +334,26 @@ smp_ages <- long_term_infil %>% dplyr::select(smp_id, first_storm, smp_event_age
 average_longterm_age <- mean(smp_ages$system_age_years)
 
 ##7.0 Surface SMPs routinely recharge within stricter 24-hr drain down window
-infil_surf_smps <- smp_bdv %>%
-  dplyr::filter(system_id %in% infil_systems) %>%
-  dplyr::filter((smp_smptype %in% surf_smp_types)) %>%
-  dplyr::pull(smp_id)
+
+#systems modeled as surface systems
+surface_modelcat <- c("Bioretention (lined)","Bioinfiltration","Bioretention(unlined)")
+surface_systems <- system_bdv %>%
+                   dplyr::filter(sys_modelinputcategory %in% surface_modelcat) %>%
+                   dplyr::pull(system_id) 
+
+surface_smps <- smp_bdv %>%
+                dplyr::filter(system_id %in% surface_systems) %>%
+                dplyr::pull(smp_id)
+
+#pull draindown data for systems, remove errors
+surface_draindown_data <- draindown_met %>%
+  dplyr::left_join(ow, by = "ow_uid") %>%
+  dplyr::filter(smp_id %in% surface_smps) %>%
+  dplyr::left_join(radar_rain_events, by = "radar_event_uid") %>%
+  dplyr::left_join(obs_sim_lookup, by = "observed_simulated_lookup_uid") %>%
+  dplyr::filter(is.na(error_lookup_uid))
+
+#summary statistics
+mean(surface_draindown_data$draindown_hr)
+sd(surface_draindown_data$draindown_hr)
+

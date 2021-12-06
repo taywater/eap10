@@ -2,7 +2,7 @@ library(odbc)
 library(lubridate)
 library(tidyverse)
 
-hostfolder <- "//pwdoows/oows/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/20211013_newsims"
+hostfolder <- "//pwdoows/oows/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/20211130_newsims"
 
 mars <- dbConnect(odbc(), "mars_data")
 

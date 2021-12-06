@@ -23,7 +23,8 @@ mars <- odbc::dbConnect(odbc::odbc(), "mars_data")
 folder <- "//pwdoows/oows/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/"
 dir.create(folder, showWarnings = FALSE)
 
-date <- "202111118_aggregatedplots"
+date_string <- lubridate::today() %>% stringr::str_replace_all("-","")
+date <- paste0(date_string,"_aggregatedplots")
 dir.create(paste0(folder, date), showWarnings = FALSE)
 
 #font size 
@@ -45,11 +46,15 @@ subsurface_metrics <- mutate(subsurface_metrics, eventdepth_lookup_uid =
                          ifelse(eventdepth_in < 2, 4,
                                 ifelse(eventdepth_in < 3, 5, 6))))))
 
-subsurface_metrics <- left_join(subsurface_metrics, bins)
-
 bins <- dbGetQuery(mars, "select * from metrics.eventdepth_bin_lookup")
 
+subsurface_metrics <- left_join(subsurface_metrics, bins)
+
+
 ows <- unique(subsurface_metrics$ow_uid)
+
+# #set to smp 9-1-1, ow_uid 925
+# i <- 134
 
 for(i in 1:length(ows)){
   
@@ -60,7 +65,7 @@ for(i in 1:length(ows)){
     xlab("Date") + 
     ylab("Relative Percent of Storage Used") +
     ggtitle(paste(site_data$smp_id[1], site_data$ow_suffix[1], "Full Period of Record"), paste("Monitored Events:", nrow(site_data)))+
-    labs(color = "Event Depth (in)", shape = "Event Depth (in)") +
+    labs(color = "Event Depth (in)", shape = "Event Depth (in)") + ylim(0,100) +
     theme(text = element_text(size = text_size))  
   
   ggsave(filename = paste(folder,date, paste0(site_data$smp_id[1], "_", site_data$ow_suffix[1], "_rpsu.png"), sep = "/"), plot = rpsu_plot, width = 10, height = 8, units = "in")

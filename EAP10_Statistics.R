@@ -281,9 +281,7 @@ exceeding_draindown_summary <- obs_draindown %>% dplyr::filter(smp_id %in% excee
 `%notin%` <- Negate(`%in%`)
 
 #associate long_term_OWs to long term SMPs
-#remove sites from long term designation: 250-2-1, 250-3-1, 274-4-1
 long_term_SMPs <- long_term_OWs %>% dplyr::left_join(ow, by = "ow_uid") %>%
-                                    dplyr::filter(smp_id %notin% c("250-2-1","250-3-1","274-4-1")) %>%
                                     dplyr::pull(smp_id)
 
 #list of longterm smps

@@ -131,6 +131,13 @@ observed_overtopping <- overtop_data %>% filter(observed == 1)
 
 ##3.0 Saturated SMP infiltration rates are inelastic to storm size
 
+#define subsurface, unlined smps. Remove surface smps associated with unlined trenches
+infil_sub_smps <- smp_bdv %>%
+  dplyr::filter(system_id %in% infil_systems) %>%
+  dplyr::filter(!(smp_smptype %in% surf_smp_types)) %>%
+  dplyr::pull(smp_id)
+
+
 
 infil_data <- infil_met %>%
              dplyr::left_join(ow, by = "ow_uid") %>%
@@ -160,22 +167,59 @@ obs_draindown_grubbs <- grubbs.test(obs_draindown$draindown_hr)
 #remove outlier
 obs_infil <- obs_infil %>% dplyr::filter(infiltration_rate_inhr != max(infiltration_rate_inhr))
 
-#visualize distribution
+#Set 0's to near 0 for log transformation
+# obs_draindown$draindown_hr_[obs_draindown$draindown_hr==0] <- 0.01
+# obs_infil$infiltration_rate_inhr[obs_infil$infiltration_rate_inhr==0] <- 0.01
+
+#visualize potential distributions
 hist(obs_infil$infiltration_rate_inhr)
-hist(log(obs_infil$infil_dsg_rate_inhr))
+hist(log(obs_infil$infiltration_rate_inhr))
+hist(log2(obs_infil$infiltration_rate_inhr))
+hist(log10(obs_infil$infiltration_rate_inhr))
+hist(sqrt(obs_infil$infiltration_rate_inhr))
+hist((obs_infil$infiltration_rate_inhr)^(1/3))
 
 hist(obs_draindown$draindown_hr)
 hist(log(obs_draindown$draindown_hr))
+hist(log2(obs_draindown$draindown_hr))
+hist(log10(obs_draindown$draindown_hr))
+hist(sqrt(obs_draindown$draindown_hr))
+hist((obs_draindown$draindown_hr)^(1/3))
 
 #check normality
 shapiro.test(obs_infil$infiltration_rate_inhr)
 shapiro.test(log(obs_infil$infiltration_rate_inhr))
+shapiro.test(log2(obs_infil$infiltration_rate_inhr))
+shapiro.test(log10(obs_infil$infiltration_rate_inhr))
+shapiro.test(sqrt(obs_infil$infiltration_rate_inhr))
+shapiro.test((obs_infil$infiltration_rate_inhr)^(1/3))
 
 shapiro.test(obs_draindown$draindown_hr)
 shapiro.test(log(obs_draindown$draindown_hr))
+shapiro.test(log2(obs_infil$infiltration_rate_inhr))
+shapiro.test(log10(obs_infil$infiltration_rate_inhr))
+shapiro.test(sqrt(obs_infil$infiltration_rate_inhr))
+shapiro.test((obs_infil$infiltration_rate_inhr)^(1/3))
+
+#qq plot check
+qqnorm(obs_infil$infiltration_rate_inhr)
+qqnorm(log(obs_infil$infiltration_rate_inhr))
+qqnorm(log2(obs_infil$infiltration_rate_inhr))
+qqnorm(log10(obs_infil$infiltration_rate_inhr))
+qqnorm(sqrt(obs_infil$infiltration_rate_inhr))
+qqnorm((obs_infil$infiltration_rate_inhr)^(1/3))
+
+qqnorm(obs_draindown$draindown_hr)
+qqnorm(log(obs_draindown$draindown_hr))
+qqnorm(log2(obs_draindown$draindown_hr))
+qqnorm(log10(obs_draindown$draindown_hr))
+qqnorm(sqrt(obs_draindown$draindown_hr))
+qqnorm((obs_draindown$draindown_hr)^(1/3))
+
+
 
 #linear mixed effect model for saturated infiltration as predicted by event depth, random intercepts per smp
-infil_mix1 <- lme4::lmer(infiltration_rate_inhr ~ eventdepth_in + (1 | smp_id), obs_infil)
+infil_mix1 <- lme4::lmer(log(infiltration_rate_inhr) ~ eventdepth_in + (1 | smp_id), obs_infil)
 draindown_mix1 <- lme4::lmer(draindown_hr ~ eventdepth_in + (1| smp_id), obs_draindown)
 infil_mix1_table <- sjPlot::tab_model(infil_mix1)
 draindown_mix1_table <- sjPlot::tab_model(draindown_mix1)
@@ -213,12 +257,6 @@ infil_systems <- system_bdv %>%
   dplyr::filter(sys_modelinputcategory == "Subsurface infiltration") %>%
   dplyr::pull(system_id)
 
-#subsurface, unlined smps. Remove surface smps associated with unlined trenches
-
-infil_sub_smps <- smp_bdv %>%
-  dplyr::filter(system_id %in% infil_systems) %>%
-  dplyr::filter(!(smp_smptype %in% surf_smp_types)) %>%
-  dplyr::pull(smp_id)
 
 system_precon_infil <- system_bdv %>% dplyr::select(system_id, infil_constr_rate_inhr, infil_constr_testtype,
                              infil_dsg_rate_inhr,infil_dsg_rate_inhr)

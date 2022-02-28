@@ -16,6 +16,7 @@ library(pwdgsi)
 library(lme4)
 library(outliers)
 library(sjPlot)
+library(sjmisc)
 
 
 #database connections
@@ -167,9 +168,9 @@ obs_draindown_grubbs <- grubbs.test(obs_draindown$draindown_hr)
 #remove outlier
 obs_infil <- obs_infil %>% dplyr::filter(infiltration_rate_inhr != max(infiltration_rate_inhr))
 
-#Set 0's to near 0 for log transformation
-# obs_draindown$draindown_hr_[obs_draindown$draindown_hr==0] <- 0.01
-# obs_infil$infiltration_rate_inhr[obs_infil$infiltration_rate_inhr==0] <- 0.01
+#Set 0's to near 0 (smallest observed non-zero value of 0.08333) for log transformation
+obs_draindown$draindown_hr_no0 <- obs_draindown$draindown_hr
+obs_draindown$draindown_hr_no0[obs_draindown$draindown_hr_no0==0] <- 0.0833
 
 #visualize potential distributions
 hist(obs_infil$infiltration_rate_inhr)
@@ -180,9 +181,9 @@ hist(sqrt(obs_infil$infiltration_rate_inhr))
 hist((obs_infil$infiltration_rate_inhr)^(1/3))
 
 hist(obs_draindown$draindown_hr)
-hist(log(obs_draindown$draindown_hr))
-hist(log2(obs_draindown$draindown_hr))
-hist(log10(obs_draindown$draindown_hr))
+hist(log(obs_draindown$draindown_hr_no0))
+hist(log2(obs_draindown$draindown_hr_no0))
+hist(log10(obs_draindown$draindown_hr_no0))
 hist(sqrt(obs_draindown$draindown_hr))
 hist((obs_draindown$draindown_hr)^(1/3))
 
@@ -195,11 +196,11 @@ shapiro.test(sqrt(obs_infil$infiltration_rate_inhr))
 shapiro.test((obs_infil$infiltration_rate_inhr)^(1/3))
 
 shapiro.test(obs_draindown$draindown_hr)
-shapiro.test(log(obs_draindown$draindown_hr))
-shapiro.test(log2(obs_infil$infiltration_rate_inhr))
-shapiro.test(log10(obs_infil$infiltration_rate_inhr))
-shapiro.test(sqrt(obs_infil$infiltration_rate_inhr))
-shapiro.test((obs_infil$infiltration_rate_inhr)^(1/3))
+shapiro.test(log(obs_draindown$draindown_hr_no0))
+shapiro.test(log2(obs_draindown$draindown_hr_no0))
+shapiro.test(log10(obs_draindown$draindown_hr_no0))
+shapiro.test(sqrt(obs_draindown$draindown_hr))
+shapiro.test((obs_draindown$draindown_hr)^(1/3))
 
 #qq plot check
 qqnorm(obs_infil$infiltration_rate_inhr)
@@ -210,26 +211,51 @@ qqnorm(sqrt(obs_infil$infiltration_rate_inhr))
 qqnorm((obs_infil$infiltration_rate_inhr)^(1/3))
 
 qqnorm(obs_draindown$draindown_hr)
-qqnorm(log(obs_draindown$draindown_hr))
-qqnorm(log2(obs_draindown$draindown_hr))
-qqnorm(log10(obs_draindown$draindown_hr))
+qqnorm(obs_draindown$draindown_hr^2)
+qqnorm(obs_draindown$draindown_hr^3)
+qqnorm(log(obs_draindown$draindown_hr_no0))
+qqnorm(log2(obs_draindown$draindown_hr_no0))
+qqnorm(log10(obs_draindown$draindown_hr_no0))
 qqnorm(sqrt(obs_draindown$draindown_hr))
+qqnorm(1/sqrt(obs_draindown$draindown_hr_no0))
 qqnorm((obs_draindown$draindown_hr)^(1/3))
+qqnorm(1/(obs_draindown$draindown_hr_no0)^(1/3))
 
 
 
 #linear mixed effect model for saturated infiltration as predicted by event depth, random intercepts per smp
-infil_mix1 <- lme4::lmer(log(infiltration_rate_inhr) ~ eventdepth_in + (1 | smp_id), obs_infil)
-draindown_mix1 <- lme4::lmer(draindown_hr ~ eventdepth_in + (1| smp_id), obs_draindown)
-infil_mix1_table <- sjPlot::tab_model(infil_mix1)
-draindown_mix1_table <- sjPlot::tab_model(draindown_mix1)
+infil_mix1 <- lme4::lmer(infiltration_rate_inhr ~ eventdepth_in + (1 | smp_id), obs_infil)
+infil_log_mix1 <- lme4::lmer(log(infiltration_rate_inhr) ~ eventdepth_in + (1 | smp_id), obs_infil)
+infil_log10_mix1 <- lme4::lmer(log10(infiltration_rate_inhr) ~ eventdepth_in + (1 | smp_id), obs_infil)
 
+infil_mix1_table <- sjPlot::tab_model(infil_mix1)
+infil_log_mix1_table <- sjPlot::tab_model(infil_log_mix1)
+infil_log10_mix1_table <- sjPlot::tab_model(infil_log10_mix1)
+
+
+                    
+draindown_mix1 <- lme4::lmer(draindown_hr ~ eventdepth_in + (1| smp_id), obs_draindown)
+draindown_log_mix1 <- lme4::lmer(log(draindown_hr_no0) ~ eventdepth_in + (1|smp_id), obs_draindown)
+draindown_log10_mix1 <- lme4::lmer(log10(draindown_hr_no0) ~ eventdepth_in + (1|smp_id), obs_draindown)
+
+
+draindown_mix1_table <- sjPlot::tab_model(draindown_mix1)
+draindown_log_mix1_table <- sjPlot::tab_model(draindown_log_mix1)
+draindown_log10_mix1_table <- sjPlot::tab_model(draindown_log10_mix1)
 
 #linear mixed effect model for saturated infiltration as predicted by event depth, random intercepts and slopes per smp
 infil_mix2 <- lme4::lmer(infiltration_rate_inhr ~ eventdepth_in + (eventdepth_in | smp_id), obs_infil)
-draindown_mix2 <- lme4::lmer(draindown_hr ~ eventdepth_in + (eventdepth_in| smp_id), obs_draindown)
+infil_log_mix2 <- lme4::lmer(log(infiltration_rate_inhr) ~ eventdepth_in + (eventdepth_in | smp_id), obs_infil)
+infil_log10_mix2 <- lme4::lmer(log10(infiltration_rate_inhr) ~ eventdepth_in + (eventdepth_in | smp_id), obs_infil)
 
 infil_mix2_table <- sjPlot::tab_model(infil_mix2)
+infil_log_mix2_table <- sjPlot::tab_model(infil_log_mix2)
+infil_log10_mix2_table <- sjPlot::tab_model(infil_log10_mix2)
+
+draindown_mix2 <- lme4::lmer(draindown_hr ~ eventdepth_in + (eventdepth_in| smp_id), obs_draindown)
+draindown_log_mix2 <- lme4::lmer(log(draindown_hr_no0) ~ eventdepth_in + (eventdepth_in | smp_id), obs_draindown)
+draindown_log10_mix2 <- lme4::lmer(log10(draindown_hr_no0) ~ eventdepth_in + (eventdepth_in | smp_id), obs_draindown)
+
 draindown_mix2_table <- sjPlot::tab_model(draindown_mix2)
 
 
@@ -349,14 +375,30 @@ long_term_infil_plot <- ggplot(long_term_infil,aes(y = infiltration_rate_inhr, x
 
 
 #Linear mixed effect model of long term smps
+
+#histograms
 hist(long_term_infil$infiltration_rate_inhr)
 long_term_infil$log_infiltration_rate_inhr <- log(long_term_infil$infiltration_rate_inhr)
 hist(long_term_infil$log_infiltration_rate_inhr)
+long_term_infil$log10_infiltration_rate_inhr <- log10(long_term_infil$infiltration_rate_inhr)
 
-long_term_lmer1 <- lme4::lmer(log_infiltration_rate_inhr ~ smp_event_age + (1|smp_id), long_term_infil)
-long_term_lmer2 <- lme4::lmer(log_infiltration_rate_inhr ~ smp_event_age + (smp_event_age|smp_id), long_term_infil)
-long_term_lmer_table1 <- sjPlot::tab_model(long_term_lmer1)
-long_term_lmer_table2 <- sjPlot::tab_model(long_term_lmer2)
+#qqplots
+qqnorm(long_term_infil$infiltration_rate_inhr)
+qqnorm(long_term_infil$log_infiltration_rate_inhr)
+qqnorm(long_term_infil$log10_infiltration_rate_inhr)
+
+long_term_log_lmer1 <- lme4::lmer(log_infiltration_rate_inhr ~ smp_event_age + (1|smp_id), long_term_infil)
+long_term_log_lmer2 <- lme4::lmer(log_infiltration_rate_inhr ~ smp_event_age + (smp_event_age|smp_id), long_term_infil)
+
+long_term_log10_lmer1 <- lme4::lmer(log10_infiltration_rate_inhr ~ smp_event_age + (1|smp_id), long_term_infil)
+long_term_log10_lmer2 <- lme4::lmer(log10_infiltration_rate_inhr ~ smp_event_age + (smp_event_age|smp_id), long_term_infil)
+
+long_term_log_lmer_table1 <- sjPlot::tab_model(long_term_log_lmer1)
+long_term_log_lmer_table2 <- sjPlot::tab_model(long_term_log_lmer2)
+
+long_term_log10_lmer_table1 <- sjPlot::tab_model(long_term_log10_lmer1)
+long_term_log10_lmer_table2 <- sjPlot::tab_model(long_term_log10_lmer2)
+
 
 #descriptive statistics of long term smps
 
@@ -393,3 +435,35 @@ surface_draindown_data <- draindown_met %>%
 mean(surface_draindown_data$draindown_hr)
 sd(surface_draindown_data$draindown_hr)
 
+##Save copies of the histograms, boxplots, summary stats for the two lmer regeressions used
+# #temp directory
+# image_dir <- "C:users/brian.cruice/documents"
+#permanent directory
+image_dir <- paste0("//pwdoows/OOWS/Watershed Sciences/GSI Monitoring/06 Special Projects/34 PWDGSI metrics calculations/EAP10/",lubridate::today())
+dir.create(image_dir)
+setwd(image_dir)
+
+#Plots
+png("Log10 Infiltration Rate Distribution.png", width = 1000, height = 600)
+hist(log10(obs_infil$infiltration_rate_inhr),
+     main = "Histogram of Log10(Infiltration Rate) [in/hr]",
+     xlab = "Log10(Infiltration Rate [in/hr])",
+     ylab = "Frequency")
+dev.off()
+
+png("Log10 Infiltration Rate Normal Q-Q Plot.png", width = 1000, height = 600)
+qqnorm(log10(obs_infil$infiltration_rate_inhr),
+       main = "Normal Q-Q Plot of Log10(Infiltration Rate [in/hr])")
+dev.off()
+
+png("Long Term Sites Log10 Infiltration Rate Distribution.png", width = 1000, height = 600)
+hist(long_term_infil$log10_infiltration_rate_inhr,
+     main = "Long Term Sites: Histogram of Log10(Infiltration Rate [in/hr])",
+     xlab = "Log10(Infiltration Rate [in/hr])",
+     ylab = "Frequency")
+dev.off()
+
+png("Long Term Sites Log10 Infiltration Rate Normal Q-Q Plot.png", width = 1000, height = 600)
+qqnorm(long_term_infil$log10_infiltration_rate_inhr,
+       main = "Long Term Sites: Normal QQ Plot of Log10(Infiltration Rate [in/hr])")
+dev.off()

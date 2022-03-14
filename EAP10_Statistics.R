@@ -132,6 +132,11 @@ observed_overtopping <- overtop_data %>% filter(observed == 1)
 
 ##3.0 Saturated SMP infiltration rates are inelastic to storm size
 
+#subsurface, unlined systems
+infil_systems <- system_bdv %>%
+  dplyr::filter(sys_modelinputcategory == "Subsurface infiltration") %>%
+  dplyr::pull(system_id)
+
 #define subsurface, unlined smps. Remove surface smps associated with unlined trenches
 infil_sub_smps <- smp_bdv %>%
   dplyr::filter(system_id %in% infil_systems) %>%
@@ -277,12 +282,6 @@ quantile(obs_draindown$draindown_hr)
 ##4.0 Pre-construction infiltration tests routinely under predict SMP recession rates
 
 # Grab statistics, existing plot and conclusions are OK as is
-
-#subsurface, unlined systems
-infil_systems <- system_bdv %>%
-  dplyr::filter(sys_modelinputcategory == "Subsurface infiltration") %>%
-  dplyr::pull(system_id)
-
 
 system_precon_infil <- system_bdv %>% dplyr::select(system_id, infil_constr_rate_inhr, infil_constr_testtype,
                              infil_dsg_rate_inhr,infil_dsg_rate_inhr)
@@ -435,7 +434,7 @@ surface_draindown_data <- draindown_met %>%
 mean(surface_draindown_data$draindown_hr)
 sd(surface_draindown_data$draindown_hr)
 
-##Save copies of the histograms, boxplots, summary stats for the two lmer regeressions used
+##Save copies of the histograms, boxplots, summary stats for the two lmer regressions used
 # #temp directory
 # image_dir <- "C:users/brian.cruice/documents"
 #permanent directory

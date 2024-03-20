@@ -18,7 +18,7 @@ ow_data <- dbGetQuery(mars_9,
 
 deployment_query <- dbGetQuery(mars_9,
                     "SELECT 	gi.smp_smptype,
-                    		      count(dfc.deployment_uid) as locations,
+                    		      count(gi.smp_id) WHERE gi.smp_id IS DINSTINCT as locations,
                               sum(extract( day from (dfc.collection_dtime_est - dfc.deployment_dtime_est))) as monitor_length
                     FROM fieldwork.deployment_full_cwl as dfc
                     LEFT JOIN public.greenit_smpbestdata as gi
@@ -26,7 +26,7 @@ deployment_query <- dbGetQuery(mars_9,
                     WHERE collection_dtime_est IS NOT NULL
                     AND collection_dtime_est <= '20210101' AND collection_dtime_est >= '20130101'
                     AND public = TRUE
-                    AND ow_suffix LIKE '%OW%'
+                    AND ow_suffix LIKE '%OW%' OR ow_suffix LIKE '%SW%'
                     AND smp_smptype IS NOT NULL
                     GROUP BY gi.smp_smptype")
 
@@ -52,18 +52,24 @@ query_ii <- dbGetQuery(mars_9,
 
 #Query iii
 querry_iii <- dbGetQuery(mars_9,
-                               "SELECT 	gi.smp_smptype,
-                    		      count(dfc.deployment_uid) as locations,
-                              sum(extract( day from (dfc.collection_dtime_est - dfc.deployment_dtime_est))) as monitor_length
-                    FROM fieldwork.deployment_full_cwl as dfc
-                    LEFT JOIN public.greenit_smpbestdata as gi
-                    ON gi.smp_id = dfc.smp_id
-                    WHERE collection_dtime_est IS NOT NULL
-                    AND collection_dtime_est <= '20210101' AND collection_dtime_est >= '20130101'
-                    AND public = TRUE
-                    AND ow_suffix LIKE '%OW%'
-                    AND smp_smptype IS NOT NULL
-                    GROUP BY gi.smp_smptype")
+                               "SELECT gi.smp_smptype, count(ml.smp_id) as locations, sum(ml.monitor_length) as monitor_length FROM
+                              	public.greenit_smpbestdata as gi
+                              	LEFT JOIN
+                              	(SELECT gi.smp_id,
+                              		sum(extract( day from (dfc.collection_dtime_est - dfc.deployment_dtime_est))) as monitor_length
+                                      FROM fieldwork.deployment_full_cwl as dfc
+                                      LEFT JOIN public.greenit_smpbestdata as gi
+                                      ON gi.smp_id = dfc.smp_id
+                                      WHERE collection_dtime_est IS NOT NULL
+                                      AND collection_dtime_est <= '20210101' AND collection_dtime_est >= '20130101'
+                                      AND public = TRUE
+                                      AND ow_suffix LIKE '%OW%' OR ow_suffix LIKE '%SW%'
+                                      AND smp_smptype IS NOT NULL
+                                      GROUP BY gi.smp_id) as ml
+                              	ON gi.smp_id = ml.smp_id
+                              	WHERE ml.monitor_length IS NOT NULL
+                              	GROUP BY gi.smp_smptype")
+
 
 #Query iv
 query_iv <- dbGetQuery(mars_9,
